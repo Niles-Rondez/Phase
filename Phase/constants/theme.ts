@@ -1,5 +1,26 @@
 export type AppColorScheme = 'light' | 'dark';
 
+export const PHASE_COLORS = {
+  bulk: {
+    primary: '#2ECC71', // green
+    bg: '#1E3A2F',
+    border: '#2C6B4D',
+    text: '#B9F6D0',
+  },
+  cut: {
+    primary: '#FF6B6B', // coral/red
+    bg: '#3A1E24',
+    border: '#7A2C3B',
+    text: '#FFC1CD',
+  },
+  maintain: {
+    primary: '#8FA3FF', // gray/blue
+    bg: '#1F2B3A',
+    border: '#2E4A6B',
+    text: '#C7DCFF',
+  },
+} as const;
+
 export const theme = {
   light: {
     colors: {

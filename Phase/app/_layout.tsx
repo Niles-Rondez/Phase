@@ -6,8 +6,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/components/useColorScheme';
 import { theme } from '@/constants/theme';
+import { requestPermissions } from '@/lib/notifications';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -37,6 +39,25 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
     }
+  }, [loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    let cancelled = false;
+    (async () => {
+      const key = 'phase_notifications_permission_ran_once';
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      if (cancelled) return;
+      await requestPermissions();
+      if (cancelled) return;
+      await AsyncStorage.setItem(key, '1');
+    })().catch(() => {
+      // ignore: permissions are optional and should never block app startup
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loaded]);
 
   if (!loaded) {

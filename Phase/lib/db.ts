@@ -68,3 +68,19 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase> {
   return db;
 }
 
+export async function resetDatabase(): Promise<void> {
+  const db = await getDb();
+
+  await db.execAsync(`
+    PRAGMA foreign_keys = OFF;
+    DROP TABLE IF EXISTS weekly_summaries;
+    DROP TABLE IF EXISTS biweekly_logs;
+    DROP TABLE IF EXISTS daily_logs;
+    DROP TABLE IF EXISTS phases;
+    PRAGMA foreign_keys = ON;
+  `);
+
+  initPromise = init(db);
+  await initPromise;
+}
+

@@ -133,6 +133,20 @@ export async function getActivePhase(): Promise<PhaseRow | null> {
   return row ?? null;
 }
 
+export async function getLastLoggedWeightKg(): Promise<number | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ weight_kg: number }>(
+    `
+    SELECT weight_kg
+    FROM daily_logs
+    WHERE weight_kg IS NOT NULL
+    ORDER BY date DESC, id DESC
+    LIMIT 1
+    `
+  );
+  return row?.weight_kg ?? null;
+}
+
 export async function setPhaseEnded(params: {
   phaseId: number;
   endDate: ISODateString;
@@ -142,6 +156,34 @@ export async function setPhaseEnded(params: {
     params.endDate,
     params.phaseId,
   ]);
+}
+
+function toISODateLocal(d: Date): ISODateString {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export async function endActivePhase(now: Date = new Date()): Promise<void> {
+  const active = await getActivePhase();
+  if (!active) return;
+  await setPhaseEnded({ phaseId: active.id, endDate: toISODateLocal(now) });
+}
+
+export async function insertPhase(input: {
+  type: PhaseType;
+  pace: PhasePace;
+  start_date: ISODateString;
+  start_weight: number;
+  goal_weight: number;
+  weekly_target_rate: number;
+  calorie_target: number;
+}): Promise<number> {
+  return insertNewPhase({
+    ...input,
+    end_date: null,
+  });
 }
 
 export async function insertNewPhase(input: {
@@ -187,6 +229,19 @@ export async function getLast8WeeklySummaries(): Promise<WeeklySummaryRow[]> {
   return rows;
 }
 
+export async function getLast12WeeklySummaries(): Promise<WeeklySummaryRow[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<WeeklySummaryRow>(
+    `
+    SELECT id, week_start, avg_weight, dominant_lift_rating, calorie_compliance_pct, phase_id
+    FROM weekly_summaries
+    ORDER BY week_start DESC, id DESC
+    LIMIT 12
+    `
+  );
+  return rows;
+}
+
 export async function insertBiweeklyLog(input: {
   date: ISODateString;
   waist_cm: number;
@@ -206,6 +261,42 @@ export async function getAllBiweeklyLogs(): Promise<BiweeklyLogRow[]> {
     SELECT id, date, waist_cm
     FROM biweekly_logs
     ORDER BY date ASC, id ASC
+    `
+  );
+  return rows;
+}
+
+export async function getAllPhases(): Promise<PhaseRow[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<PhaseRow>(
+    `
+    SELECT id, type, pace, start_date, end_date, start_weight, goal_weight, weekly_target_rate, calorie_target
+    FROM phases
+    ORDER BY start_date ASC, id ASC
+    `
+  );
+  return rows;
+}
+
+export async function getAllDailyLogs(): Promise<DailyLogRow[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<DailyLogRow>(
+    `
+    SELECT id, date, weight_kg, did_lift, lift_rating, calorie_rating
+    FROM daily_logs
+    ORDER BY date ASC, id ASC
+    `
+  );
+  return rows;
+}
+
+export async function getAllWeeklySummaries(): Promise<WeeklySummaryRow[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<WeeklySummaryRow>(
+    `
+    SELECT id, week_start, avg_weight, dominant_lift_rating, calorie_compliance_pct, phase_id
+    FROM weekly_summaries
+    ORDER BY week_start ASC, id ASC
     `
   );
   return rows;
