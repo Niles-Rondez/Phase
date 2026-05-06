@@ -14,7 +14,11 @@
       "backgroundColor": "#0B0D10"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.riverniles.Phase",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -35,6 +39,19 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c644e62f-e25b-4ffa-ac52-8ee42e882af1"
+      }
+    },
+    "owner": "riverniles",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c644e62f-e25b-4ffa-ac52-8ee42e882af1"
     }
   }
 }
